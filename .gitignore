@@ -1,0 +1,12 @@
+# IntelliJ IDEA specific files
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+out/
+
+# Other common IDE files
+*.swp
+*.swo
+.vscode/
