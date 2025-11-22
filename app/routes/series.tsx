@@ -90,12 +90,8 @@ export default function Series(): JSX.Element {
   }
 
   if (selectedSeries) {
-    // Ensure episodes is always an array
-    const episodes = Array.isArray(selectedSeries.episodes) 
-      ? selectedSeries.episodes 
-      : selectedSeries.episodes 
-        ? Object.values(selectedSeries.episodes).filter((ep: unknown) => typeof ep === "object" && ep !== null)
-        : [];
+    // Episodes are normalized in the handler to always be an array
+    const episodes = Array.isArray(selectedSeries.episodes) ? selectedSeries.episodes : [];
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
@@ -159,7 +155,7 @@ export default function Series(): JSX.Element {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Episodes</h2>
             <div className="space-y-2">
               {episodes.length > 0 ? (
-                episodes.map((episode: { id: number; title: string; info?: { plot?: string; duration?: string } }) => (
+                episodes.map((episode) => (
                   <div
                     key={episode.id}
                     className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
