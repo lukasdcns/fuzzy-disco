@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { CachedItem } from "../types/cache.types";
-import { searchItemsHandler } from "../handlers/xtream/search.handler";
+import { searchService } from "../services/api/search.service";
 
 interface UseSearchOptions {
   type?: "vod" | "series";
@@ -70,7 +70,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
       setError(null);
 
       try {
-        const result = searchItemsHandler(searchQuery, {
+        const result = await searchService.searchItems(searchQuery, {
           type: options.type,
           page: options.page || 1,
           limit: options.limit || 50,
