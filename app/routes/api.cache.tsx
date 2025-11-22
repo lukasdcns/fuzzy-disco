@@ -5,7 +5,7 @@ import {
   getCacheStats,
   clearExpiredCache,
   invalidateCachePattern,
-} from "../../app/lib/cache";
+} from "../lib/cache";
 
 /**
  * Cache management API route

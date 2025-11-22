@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { join } from "node:path";
 import { mkdirSync } from "node:fs";
+import type { CachedItem } from "../../types/cache.types";
 
 // Cache configuration
 const CACHE_TTL = {
@@ -239,14 +240,6 @@ export function closeCache(): void {
 // ============================================================================
 // Items Storage Functions
 // ============================================================================
-
-export interface CachedItem {
-  id: string;
-  type: "vod" | "series";
-  name: string;
-  poster_url: string | null;
-  category_id: string | null;
-}
 
 /**
  * Store a single item in the items table

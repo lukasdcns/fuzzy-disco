@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import type { XtreamSeriesCategory, XtreamSeriesInfo } from "../types/xtream.types";
 import type { CachedItem } from "../types/cache.types";
-import { xtreamService } from "../services/api/xtream.service";
-import { itemsService } from "../services/api/items.service";
-import { getConfigHandler } from "../handlers/xtream/config.handler";
+import { getSeriesCategoriesHandler, getSeriesInfoHandler } from "../handlers/xtream/series.handler";
+import { getItemsHandler } from "../handlers/xtream/items.handler";
 
 interface UseSeriesOptions {
   categoryId?: string;
@@ -28,14 +27,8 @@ export function useSeries(options: UseSeriesOptions = {}) {
   } | null>(null);
 
   const loadCategories = async () => {
-    const config = getConfigHandler();
-    if (!config) {
-      setError("Please configure your Xtream API connection first.");
-      return;
-    }
-
     try {
-      const categoriesData = await xtreamService.getSeriesCategories(config);
+      const categoriesData = await getSeriesCategoriesHandler();
       setCategories(categoriesData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load series categories");
@@ -47,7 +40,7 @@ export function useSeries(options: UseSeriesOptions = {}) {
     setError(null);
 
     try {
-      const data = await itemsService.getItems("series", {
+      const data = await getItemsHandler("series", {
         categoryId,
         page,
         limit: options.limit || 50,
@@ -62,14 +55,11 @@ export function useSeries(options: UseSeriesOptions = {}) {
   };
 
   const loadSeriesInfo = async (seriesId: number) => {
-    const config = getConfigHandler();
-    if (!config) return;
-
     setIsLoading(true);
     setError(null);
 
     try {
-      const seriesInfo = await xtreamService.getSeriesInfo(config, seriesId);
+      const seriesInfo = await getSeriesInfoHandler(seriesId);
       setSelectedSeries(seriesInfo);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load series details");

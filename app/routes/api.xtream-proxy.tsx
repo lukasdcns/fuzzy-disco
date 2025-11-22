@@ -1,7 +1,7 @@
 import { data } from "react-router";
 import type { Route } from "./+types/api.xtream-proxy";
 import type { CachedItem } from "../../types/cache.types";
-import { getCache, setCache, generateCacheKey, clearExpiredCache, storeItems } from "../../app/lib/cache";
+import { getCache, setCache, generateCacheKey, clearExpiredCache, storeItems } from "../lib/cache";
 
 /**
  * Server-side proxy route for Xtream API requests

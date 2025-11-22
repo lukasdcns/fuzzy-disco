@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import type { Route } from "./+types/config";
 import type { XtreamConfig } from "../../types/xtream.types";
 import { useXtreamConfig } from "../../hooks/useXtreamConfig";
-import { syncAllContentHandler } from "../../handlers/xtream/sync.handler";
+import { useSync } from "../../hooks/useSync";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -15,6 +15,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Config() {
   const navigate = useNavigate();
   const { config: savedConfig, testConnection } = useXtreamConfig();
+  const { syncAllContent } = useSync();
   const [config, setConfig] = useState<XtreamConfig>({
     serverUrl: "",
     username: "",
@@ -50,7 +51,7 @@ export default function Config() {
         
         // Automatically trigger content sync after successful login/save
         try {
-          const syncData = await syncAllContentHandler(config);
+          const syncData = await syncAllContent(config);
           if (syncData.success) {
             setTestResult({
               success: true,

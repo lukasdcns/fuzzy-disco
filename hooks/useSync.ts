@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { XtreamConfig } from "../types/xtream.types";
-import { syncAllContentHandler } from "../handlers/xtream/sync.handler";
 
 export function useSync() {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -20,13 +19,32 @@ export function useSync() {
     setResult(null);
 
     try {
-      const response = await syncAllContentHandler(config);
-      setResult({
-        success: response.success,
-        message: response.message,
-        details: response.results,
+      const response = await fetch("/api/sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ config }),
       });
-      return response;
+
+      const data = await response.json();
+
+      if (response.ok || response.status === 207) {
+        // 207 = Multi-Status (partial success)
+        const result = {
+          success: data.success,
+          message: data.message,
+          details: data.results,
+        };
+        setResult(result);
+        return {
+          success: data.success,
+          message: data.message,
+          results: data.results,
+        };
+      } else {
+        throw new Error(data.error || data.message || "Failed to sync content");
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An error occurred while syncing content";
       setResult({

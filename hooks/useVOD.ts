@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import type { XtreamVODCategory } from "../types/xtream.types";
 import type { CachedItem } from "../types/cache.types";
-import { xtreamService } from "../services/api/xtream.service";
-import { itemsService } from "../services/api/items.service";
-import { getConfigHandler } from "../handlers/xtream/config.handler";
+import { getVODCategoriesHandler } from "../handlers/xtream/vod.handler";
+import { getItemsHandler } from "../handlers/xtream/items.handler";
 
 interface UseVODOptions {
   categoryId?: string;
@@ -27,14 +26,8 @@ export function useVOD(options: UseVODOptions = {}) {
   } | null>(null);
 
   const loadCategories = async () => {
-    const config = getConfigHandler();
-    if (!config) {
-      setError("Please configure your Xtream API connection first.");
-      return;
-    }
-
     try {
-      const categoriesData = await xtreamService.getVODCategories(config);
+      const categoriesData = await getVODCategoriesHandler();
       setCategories(categoriesData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load VOD categories");
@@ -46,7 +39,7 @@ export function useVOD(options: UseVODOptions = {}) {
     setError(null);
 
     try {
-      const data = await itemsService.getItems("vod", {
+      const data = await getItemsHandler("vod", {
         categoryId,
         page,
         limit: options.limit || 50,
