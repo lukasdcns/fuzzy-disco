@@ -2,10 +2,10 @@
  * Sync Handler - Business logic for content synchronization
  * Handles bulk synchronization of VOD and Series content from Xtream API to database
  */
-import type { XtreamConfig } from "../../../types/xtream.types";
-import type { CachedItem } from "../../../types/cache.types";
-import { xtreamService } from "../../../services/api/xtream.service";
-import { storeItems, clearItems } from "../../../app/lib/cache";
+import type { XtreamConfig } from "../../types/xtream.types";
+import type { CachedItem } from "../../types/cache.types";
+import { xtreamService } from "../../services/api/xtream.service";
+import { storeItems, clearItems } from "../../app/lib/cache";
 
 interface SyncResults {
   vod: { fetched: number; stored: number; errors: string[] };

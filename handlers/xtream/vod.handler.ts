@@ -2,8 +2,8 @@
  * VOD Handler - Business logic for VOD operations
  * Handles VOD category retrieval with configuration validation
  */
-import type { XtreamVODCategory } from "../../../types/xtream.types";
-import { xtreamService } from "../../../services/api/xtream.service";
+import type { XtreamVODCategory } from "../../types/xtream.types";
+import { xtreamService } from "../../services/api/xtream.service";
 import { getConfigHandler } from "./config.handler";
 
 /**

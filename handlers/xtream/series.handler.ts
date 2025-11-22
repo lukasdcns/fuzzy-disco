@@ -2,8 +2,8 @@
  * Series Handler - Business logic for Series operations
  * Handles Series category and info retrieval with configuration validation
  */
-import type { XtreamSeriesCategory, XtreamSeriesInfo } from "../../../types/xtream.types";
-import { xtreamService } from "../../../services/api/xtream.service";
+import type { XtreamSeriesCategory, XtreamSeriesInfo } from "../../types/xtream.types";
+import { xtreamService } from "../../services/api/xtream.service";
 import { getConfigHandler } from "./config.handler";
 
 /**

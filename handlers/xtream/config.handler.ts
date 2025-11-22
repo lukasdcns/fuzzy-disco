@@ -2,9 +2,9 @@
  * Configuration Handler - Business logic for config operations
  * Handles configuration validation, testing, and persistence
  */
-import type { XtreamConfig } from "../../../types/xtream.types";
-import { xtreamService } from "../../../services/api/xtream.service";
-import { saveConfig, getConfig } from "../../../utils/config";
+import type { XtreamConfig } from "../../types/xtream.types";
+import { xtreamService } from "../../services/api/xtream.service";
+import { saveConfig, getConfig } from "../../utils/config";
 
 interface ConnectionTestResult {
   success: boolean;

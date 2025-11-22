@@ -2,8 +2,8 @@
  * Items Handler - Business logic for items operations
  * Handles retrieval of cached items with pagination support
  */
-import type { CachedItem } from "../../../types/cache.types";
-import { itemsService } from "../../../services/api/items.service";
+import type { CachedItem } from "../../types/cache.types";
+import { itemsService } from "../../services/api/items.service";
 
 interface GetItemsOptions {
   categoryId?: string;
