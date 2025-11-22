@@ -3,19 +3,28 @@ import type { Route } from "./+types/settings";
 import { useXtreamConfig } from "../../hooks/useXtreamConfig";
 import { useSync } from "../../hooks/useSync";
 
-export function meta({}: Route.MetaArgs) {
+/**
+ * Meta function for the settings page route
+ * @param _args - Route meta arguments
+ * @returns Meta tags for SEO
+ */
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Settings" },
     { name: "description", content: "Account settings and content sync" },
   ];
 }
 
-export default function Settings() {
+/**
+ * Settings page component
+ * Displays account information and provides content synchronization functionality
+ */
+export default function Settings(): JSX.Element {
   const navigate = useNavigate();
   const { config } = useXtreamConfig();
   const { isSyncing, result: syncResult, syncAllContent } = useSync();
 
-  const handleSync = async () => {
+  const handleSync = async (): Promise<void> => {
     if (!config) {
       return;
     }

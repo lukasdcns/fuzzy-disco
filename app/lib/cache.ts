@@ -343,6 +343,109 @@ export function getItems(
 }
 
 /**
+ * Search items by name (case-insensitive)
+ * Supports filtering by type and optional pagination
+ *
+ * @param query - Search query string
+ * @param type - Optional type filter ("vod" | "series" | undefined for both)
+ * @param limit - Optional limit for pagination
+ * @param offset - Optional offset for pagination
+ * @returns Array of matching items
+ */
+export function searchItems(
+  query: string,
+  type?: "vod" | "series",
+  limit?: number,
+  offset?: number
+): CachedItem[] {
+  if (!query || query.trim().length === 0) {
+    return [];
+  }
+
+  try {
+    const database = getDatabase();
+    const searchTerm = `%${query.trim()}%`;
+
+    let sqlQuery: string;
+    let params: unknown[];
+
+    if (type) {
+      sqlQuery =
+        "SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? AND name LIKE ? ORDER BY name";
+      params = [type, searchTerm];
+    } else {
+      sqlQuery =
+        "SELECT id, type, name, poster_url, category_id FROM items WHERE name LIKE ? ORDER BY type, name";
+      params = [searchTerm];
+    }
+
+    // Add pagination if limit is specified
+    if (limit !== undefined && limit > 0) {
+      sqlQuery += " LIMIT ?";
+      params.push(limit);
+      if (offset !== undefined && offset > 0) {
+        sqlQuery += " OFFSET ?";
+        params.push(offset);
+      }
+    }
+
+    const rows = database.prepare(sqlQuery).all(...params) as Array<{
+      id: string;
+      type: string;
+      name: string;
+      poster_url: string | null;
+      category_id: string | null;
+    }>;
+
+    return rows.map((row) => ({
+      id: row.id,
+      type: row.type as "vod" | "series",
+      name: row.name,
+      poster_url: row.poster_url,
+      category_id: row.category_id,
+    }));
+  } catch (error) {
+    console.error("Search items error:", error);
+    return [];
+  }
+}
+
+/**
+ * Get count of items matching a search query
+ *
+ * @param query - Search query string
+ * @param type - Optional type filter ("vod" | "series" | undefined for both)
+ * @returns Count of matching items
+ */
+export function getSearchCount(query: string, type?: "vod" | "series"): number {
+  if (!query || query.trim().length === 0) {
+    return 0;
+  }
+
+  try {
+    const database = getDatabase();
+    const searchTerm = `%${query.trim()}%`;
+
+    let sqlQuery: string;
+    let params: unknown[];
+
+    if (type) {
+      sqlQuery = "SELECT COUNT(*) as count FROM items WHERE type = ? AND name LIKE ?";
+      params = [type, searchTerm];
+    } else {
+      sqlQuery = "SELECT COUNT(*) as count FROM items WHERE name LIKE ?";
+      params = [searchTerm];
+    }
+
+    const row = database.prepare(sqlQuery).get(...params) as { count: number };
+    return row.count;
+  } catch (error) {
+    console.error("Get search count error:", error);
+    return 0;
+  }
+}
+
+/**
  * Get a single item by ID and type
  */
 export function getItem(id: string, type: "vod" | "series"): CachedItem | null {

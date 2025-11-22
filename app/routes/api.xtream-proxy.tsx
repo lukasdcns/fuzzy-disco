@@ -125,7 +125,13 @@ export async function loader({ request }: Route.LoaderArgs): Promise<Response> {
 }
 
 // Handle OPTIONS requests for CORS preflight
-export async function action({ request }: Route.ActionArgs) {
+/**
+ * Proxy action handler for POST requests
+ *
+ * @param args - Route action arguments containing the request
+ * @returns Response with proxied API data or error
+ */
+export async function action({ request }: Route.ActionArgs): Promise<Response> {
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,

@@ -9,5 +9,6 @@ export default [
   route("api/xtream-proxy", "routes/api.xtream-proxy.tsx"),
   route("api/cache/*", "routes/api.cache.tsx"),
   route("api/items", "routes/api.items.tsx"),
+  route("api/search", "routes/api.search.tsx"), // Added for search API
   route("api/sync", "routes/api.sync.tsx"),
 ] satisfies RouteConfig;

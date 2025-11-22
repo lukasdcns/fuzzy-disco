@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/vod";
 import { useVOD } from "../../hooks/useVOD";
+import { useSearch } from "../../hooks/useSearch";
 
 /**
  * Meta function for the VOD page route
@@ -31,9 +32,34 @@ export default function VOD(): JSX.Element {
     limit: itemsPerPage,
   });
 
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    items: searchItems,
+    isLoading: isSearching,
+    pagination: searchPagination,
+    totalCount: searchTotalCount,
+    clearSearch,
+  } = useSearch({
+    type: "vod",
+    page: currentPage,
+    limit: itemsPerPage,
+  });
+
+  const isSearchMode = searchQuery.trim().length > 0;
+  const displayItems = isSearchMode ? searchItems : items;
+  const displayPagination = isSearchMode ? searchPagination : pagination;
+  const displayLoading = isSearchMode ? isSearching : isLoading;
+
   useEffect(() => {
     setCurrentPage(1); // Reset to first page when category changes
   }, [selectedCategory]);
+
+  useEffect(() => {
+    if (isSearchMode) {
+      setCurrentPage(1); // Reset to first page when search starts
+    }
+  }, [searchQuery, isSearchMode]);
 
   const handlePageChange = (newPage: number): void => {
     setCurrentPage(newPage);
@@ -65,14 +91,70 @@ export default function VOD(): JSX.Element {
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">VOD Content</h1>
           <button
-            onClick={() => navigate("/")}
+            onClick={(): void => navigate("/")}
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             ← Back to Home
           </button>
         </div>
 
-        {categories.length > 0 && (
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search VOD content..."
+              value={searchQuery}
+              onChange={(e): void => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            {searchQuery && (
+              <button
+                onClick={(): void => {
+                  clearSearch();
+                  setCurrentPage(1);
+                }}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <svg
+                  className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+          {isSearchMode && searchTotalCount > 0 && (
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Found {searchTotalCount} result{searchTotalCount !== 1 ? "s" : ""} for "{searchQuery}"
+            </p>
+          )}
+        </div>
+
+        {categories.length > 0 && !isSearchMode && (
           <div className="mb-6">
             <div className="flex flex-wrap gap-2">
               <button
@@ -103,13 +185,13 @@ export default function VOD(): JSX.Element {
         )}
 
         {/* Pagination Controls at Top */}
-        {pagination && pagination.totalPages > 1 && !isLoading && items.length > 0 && (
+        {displayPagination && displayPagination.totalPages > 1 && !displayLoading && displayItems.length > 0 && (
           <div className="mb-6 flex items-center justify-center gap-2 flex-wrap">
             <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={!pagination.hasPreviousPage || isLoading}
+              onClick={(): void => handlePageChange(currentPage - 1)}
+              disabled={!displayPagination.hasPreviousPage || displayLoading}
               className={`px-4 py-2 rounded-md transition-colors ${
-                pagination.hasPreviousPage && !isLoading
+                displayPagination.hasPreviousPage && !displayLoading
                   ? "bg-blue-600 hover:bg-blue-700 text-white"
                   : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
               }`}
@@ -160,12 +242,12 @@ export default function VOD(): JSX.Element {
             </button>
 
             <span className="ml-4 text-sm text-gray-600 dark:text-gray-400">
-              Page {currentPage} of {pagination.totalPages} ({pagination.limit} items per page)
+              Page {currentPage} of {displayPagination.totalPages} ({displayPagination.limit} items per page)
             </span>
           </div>
         )}
 
-        {isLoading && (
+        {displayLoading && (
           <div className="text-center py-12">
             <p className="text-gray-600 dark:text-gray-400">Loading...</p>
           </div>
@@ -177,7 +259,7 @@ export default function VOD(): JSX.Element {
           </div>
         )}
 
-        {!isLoading && items.length === 0 && !error && (
+        {!displayLoading && displayItems.length === 0 && !error && !isSearchMode && (
           <div className="text-center py-12">
             <p className="text-gray-600 dark:text-gray-400">No VOD content found.</p>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
@@ -186,10 +268,10 @@ export default function VOD(): JSX.Element {
           </div>
         )}
 
-        {!isLoading && items.length > 0 && (
+        {!displayLoading && displayItems.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {items.map((item) => (
+              {displayItems.map((item) => (
                 <div
                   key={item.id}
                   className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -215,13 +297,13 @@ export default function VOD(): JSX.Element {
             </div>
 
             {/* Pagination Controls */}
-            {pagination && pagination.totalPages > 1 && (
+            {displayPagination && displayPagination.totalPages > 1 && (
               <div className="mt-8 flex items-center justify-center gap-2">
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={!pagination.hasPreviousPage || isLoading}
+                  onClick={(): void => handlePageChange(currentPage - 1)}
+                  disabled={!displayPagination.hasPreviousPage || displayLoading}
                   className={`px-4 py-2 rounded-md transition-colors ${
-                    pagination.hasPreviousPage && !isLoading
+                    displayPagination.hasPreviousPage && !displayLoading
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                   }`}
@@ -230,14 +312,14 @@ export default function VOD(): JSX.Element {
                 </button>
 
                 <div className="flex items-center gap-2">
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  {Array.from({ length: Math.min(5, displayPagination.totalPages) }, (_, i) => {
                     let pageNum: number;
-                    if (pagination.totalPages <= 5) {
+                    if (displayPagination.totalPages <= 5) {
                       pageNum = i + 1;
                     } else if (currentPage <= 3) {
                       pageNum = i + 1;
-                    } else if (currentPage >= pagination.totalPages - 2) {
-                      pageNum = pagination.totalPages - 4 + i;
+                    } else if (currentPage >= displayPagination.totalPages - 2) {
+                      pageNum = displayPagination.totalPages - 4 + i;
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
@@ -245,13 +327,13 @@ export default function VOD(): JSX.Element {
                     return (
                       <button
                         key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        disabled={isLoading}
+                        onClick={(): void => handlePageChange(pageNum)}
+                        disabled={displayLoading}
                         className={`px-4 py-2 rounded-md transition-colors ${
                           currentPage === pageNum
                             ? "bg-blue-600 text-white"
                             : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                        } ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
+                        } ${displayLoading ? "cursor-not-allowed opacity-50" : ""}`}
                       >
                         {pageNum}
                       </button>
@@ -260,10 +342,10 @@ export default function VOD(): JSX.Element {
                 </div>
 
                 <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={!pagination.hasNextPage || isLoading}
+                  onClick={(): void => handlePageChange(currentPage + 1)}
+                  disabled={!displayPagination.hasNextPage || displayLoading}
                   className={`px-4 py-2 rounded-md transition-colors ${
-                    pagination.hasNextPage && !isLoading
+                    displayPagination.hasNextPage && !displayLoading
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                   }`}
@@ -272,7 +354,7 @@ export default function VOD(): JSX.Element {
                 </button>
 
                 <span className="ml-4 text-sm text-gray-600 dark:text-gray-400">
-                  Page {currentPage} of {pagination.totalPages} ({pagination.limit} items per page)
+                  Page {currentPage} of {displayPagination.totalPages} ({displayPagination.limit} items per page)
                 </span>
               </div>
             )}
