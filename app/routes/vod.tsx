@@ -1,19 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/vod";
-import {
-  getConfig,
-  getVODCategories,
-  type XtreamVODCategory,
-} from "../lib/xtream-api";
-
-interface CachedItem {
-  id: string;
-  type: "vod" | "series";
-  name: string;
-  poster_url: string | null;
-  category_id: string | null;
-}
+import type { CachedItem } from "../../types/cache.types";
+import { useVOD } from "../../hooks/useVOD";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -24,107 +13,26 @@ export function meta({}: Route.MetaArgs) {
 
 export default function VOD() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<XtreamVODCategory[]>([]);
-  const [items, setItems] = useState<CachedItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(50); // Default: 50 items per page
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  } | null>(null);
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const itemsPerPage = 50;
+  
+  const { categories, items, isLoading, error, pagination } = useVOD({
+    categoryId: selectedCategory || undefined,
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 
   useEffect(() => {
     setCurrentPage(1); // Reset to first page when category changes
-    if (selectedCategory !== null) {
-      loadStreams(selectedCategory);
-    } else {
-      loadStreams();
-    }
   }, [selectedCategory]);
-
-  useEffect(() => {
-    // Reload items when page changes
-    if (selectedCategory !== null) {
-      loadStreams(selectedCategory);
-    } else {
-      loadStreams();
-    }
-  }, [currentPage]);
-
-  const loadData = async () => {
-    const config = getConfig();
-    if (!config) {
-      setError("Please configure your Xtream API connection first.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Load categories from API (still needed for filtering)
-      const categoriesData = await getVODCategories(config);
-      setCategories(categoriesData);
-
-      // Load items from database
-      await loadItems();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load VOD content");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadItems = async (categoryId?: string, page: number = currentPage) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const url = new URL("/api/items", window.location.origin);
-      url.searchParams.set("type", "vod");
-      url.searchParams.set("limit", itemsPerPage.toString());
-      url.searchParams.set("page", page.toString());
-      if (categoryId) {
-        url.searchParams.set("categoryId", categoryId);
-      }
-
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error("Failed to load items from database");
-      }
-
-      const data = await response.json();
-      setItems(data.items || []);
-      setPagination(data.pagination || null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load items");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadStreams = async (categoryId?: string) => {
-    await loadItems(categoryId, currentPage);
-  };
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (error && !categories.length) {
+  if (error && categories.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
         <div className="max-w-7xl mx-auto">

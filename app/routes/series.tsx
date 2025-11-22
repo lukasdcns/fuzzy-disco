@@ -1,21 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/series";
-import {
-  getConfig,
-  getSeriesCategories,
-  getSeriesInfo,
-  type XtreamSeriesCategory,
-  type XtreamSeriesInfo,
-} from "../lib/xtream-api";
-
-interface CachedItem {
-  id: string;
-  type: "vod" | "series";
-  name: string;
-  poster_url: string | null;
-  category_id: string | null;
-}
+import { useSeries } from "../../hooks/useSeries";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -26,101 +12,19 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Series() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<XtreamSeriesCategory[]>([]);
-  const [items, setItems] = useState<CachedItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSeries, setSelectedSeries] = useState<XtreamSeriesInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(50); // Default: 50 items per page
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  } | null>(null);
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const itemsPerPage = 50;
+  
+  const { categories, items, selectedSeries, isLoading, error, pagination, loadSeriesInfo } = useSeries({
+    categoryId: selectedCategory || undefined,
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 
   useEffect(() => {
     setCurrentPage(1); // Reset to first page when category changes
-    if (selectedCategory !== null) {
-      loadSeries(selectedCategory);
-    } else {
-      loadSeries();
-    }
   }, [selectedCategory]);
-
-  useEffect(() => {
-    // Reload items when page changes
-    if (selectedCategory !== null) {
-      loadSeries(selectedCategory);
-    } else {
-      loadSeries();
-    }
-  }, [currentPage]);
-
-  const loadData = async () => {
-    const config = getConfig();
-    if (!config) {
-      setError("Please configure your Xtream API connection first.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Load categories from API (still needed for filtering)
-      const categoriesData = await getSeriesCategories(config);
-      setCategories(categoriesData);
-
-      // Load items from database
-      await loadItems();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load series content");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadItems = async (categoryId?: string, page: number = currentPage) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const url = new URL("/api/items", window.location.origin);
-      url.searchParams.set("type", "series");
-      url.searchParams.set("limit", itemsPerPage.toString());
-      url.searchParams.set("page", page.toString());
-      if (categoryId) {
-        url.searchParams.set("categoryId", categoryId);
-      }
-
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error("Failed to load items from database");
-      }
-
-      const data = await response.json();
-      setItems(data.items || []);
-      setPagination(data.pagination || null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load items");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadSeries = async (categoryId?: string) => {
-    await loadItems(categoryId, currentPage);
-  };
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -128,23 +32,10 @@ export default function Series() {
   };
 
   const handleSeriesClick = async (seriesId: string) => {
-    const config = getConfig();
-    if (!config) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const seriesInfo = await getSeriesInfo(config, parseInt(seriesId));
-      setSelectedSeries(seriesInfo);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load series details");
-    } finally {
-      setIsLoading(false);
-    }
+    await loadSeriesInfo(parseInt(seriesId));
   };
 
-  if (error && !categories.length) {
+  if (error && categories.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
         <div className="max-w-7xl mx-auto">

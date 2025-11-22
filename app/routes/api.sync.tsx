@@ -1,11 +1,9 @@
 import { data } from "react-router";
 import type { Route } from "./+types/api.sync";
-import {
-  getVODStreams,
-  getSeries,
-  type XtreamConfig,
-} from "../lib/xtream-api";
-import { storeItems, type CachedItem, clearItems } from "../lib/cache";
+import type { XtreamConfig } from "../../types/xtream.types";
+import type { CachedItem } from "../../types/cache.types";
+import { xtreamService } from "../../services/api/xtream.service";
+import { storeItems, clearItems } from "../../app/lib/cache";
 
 /**
  * API route to sync all content from Xtream API to database
@@ -40,7 +38,7 @@ export async function action({ request }: Route.ActionArgs) {
 
     // Fetch all VOD streams
     try {
-      const vodStreams = await getVODStreams(config);
+      const vodStreams = await xtreamService.getVODStreams(config);
       results.vod.fetched = vodStreams.length;
 
       if (vodStreams.length > 0) {
@@ -69,7 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
 
     // Fetch all Series
     try {
-      const series = await getSeries(config);
+      const series = await xtreamService.getSeries(config);
       results.series.fetched = series.length;
 
       if (series.length > 0) {

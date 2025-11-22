@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/home";
-import { getConfig } from "../lib/xtream-api";
+import { useXtreamConfig } from "../../hooks/useXtreamConfig";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -10,8 +10,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const config = getConfig();
-  const isConfigured = config !== null;
+  const { config, isConfigured } = useXtreamConfig();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">

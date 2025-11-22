@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/settings";
-import { getConfig, type XtreamConfig } from "../lib/xtream-api";
+import { useXtreamConfig } from "../../hooks/useXtreamConfig";
+import { useSync } from "../../hooks/useSync";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -12,66 +12,14 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [config, setConfig] = useState<XtreamConfig | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<{
-    success: boolean;
-    message: string;
-    details?: {
-      vod: { fetched: number; stored: number; errors: string[] };
-      series: { fetched: number; stored: number; errors: string[] };
-    };
-  } | null>(null);
-
-  useEffect(() => {
-    const savedConfig = getConfig();
-    setConfig(savedConfig);
-  }, []);
+  const { config } = useXtreamConfig();
+  const { isSyncing, result: syncResult, syncAllContent } = useSync();
 
   const handleSync = async () => {
     if (!config) {
-      setSyncResult({
-        success: false,
-        message: "Please configure your Xtream API connection first.",
-      });
       return;
     }
-
-    setIsSyncing(true);
-    setSyncResult(null);
-
-    try {
-      const response = await fetch("/api/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ config }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok || response.status === 207) {
-        // 207 = Multi-Status (partial success)
-        setSyncResult({
-          success: data.success,
-          message: data.message,
-          details: data.results,
-        });
-      } else {
-        setSyncResult({
-          success: false,
-          message: data.error || data.message || "Failed to sync content",
-        });
-      }
-    } catch (error) {
-      setSyncResult({
-        success: false,
-        message: error instanceof Error ? error.message : "An error occurred while syncing content",
-      });
-    } finally {
-      setIsSyncing(false);
-    }
+    await syncAllContent(config);
   };
 
   if (!config) {

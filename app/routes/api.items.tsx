@@ -1,6 +1,6 @@
 import { data } from "react-router";
 import type { Route } from "./+types/api.items";
-import { getItems, getItemCount } from "../lib/cache";
+import { getItems, getItemCount } from "../../app/lib/cache";
 
 /**
  * API route to serve cached items from the database

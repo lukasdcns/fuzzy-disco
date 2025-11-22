@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/config";
-import { getConfig, saveConfig, testConnection, type XtreamConfig } from "../lib/xtream-api";
+import type { XtreamConfig } from "../../types/xtream.types";
+import { useXtreamConfig } from "../../hooks/useXtreamConfig";
+import { syncAllContentHandler } from "../../handlers/xtream/sync.handler";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -12,6 +14,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Config() {
   const navigate = useNavigate();
+  const { config: savedConfig, testConnection } = useXtreamConfig();
   const [config, setConfig] = useState<XtreamConfig>({
     serverUrl: "",
     username: "",
@@ -24,7 +27,6 @@ export default function Config() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const savedConfig = getConfig();
     if (savedConfig) {
       // Ensure useProxy defaults to true if not set (for old configs)
       setConfig({
@@ -32,7 +34,7 @@ export default function Config() {
         useProxy: savedConfig.useProxy !== false, // Default to true if undefined
       });
     }
-  }, []);
+  }, [savedConfig]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,23 +43,14 @@ export default function Config() {
     setSaved(false);
 
     try {
-      const isValid = await testConnection(config);
-      if (isValid) {
-        saveConfig(config);
+      const result = await testConnection(config);
+      if (result.success) {
         setSaved(true);
         setTestResult({ success: true, message: "Connection successful! Configuration saved. Syncing content..." });
         
         // Automatically trigger content sync after successful login/save
         try {
-          const syncResponse = await fetch("/api/sync", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ config }),
-          });
-
-          const syncData = await syncResponse.json();
+          const syncData = await syncAllContentHandler(config);
           if (syncData.success) {
             setTestResult({
               success: true,
@@ -82,7 +75,7 @@ export default function Config() {
           navigate("/");
         }, 3000); // Give more time to see sync message
       } else {
-        setTestResult({ success: false, message: "Connection failed. Please check your credentials." });
+        setTestResult({ success: false, message: result.message });
       }
     } catch (error) {
       setTestResult({
