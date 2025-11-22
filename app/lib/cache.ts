@@ -294,49 +294,55 @@ export function storeItems(items: CachedItem[]): void {
 }
 
 /**
- * Get all items of a specific type, optionally filtered by category
+ * Get items of a specific type, optionally filtered by category
+ * Supports pagination with limit and offset
  */
-export function getItems(type: "vod" | "series", categoryId?: string): CachedItem[] {
+export function getItems(
+  type: "vod" | "series",
+  categoryId?: string,
+  limit?: number,
+  offset?: number
+): CachedItem[] {
   try {
     const database = getDatabase();
 
+    let query: string;
+    let params: unknown[];
+
     if (categoryId) {
-      const rows = database
-        .prepare("SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? AND category_id = ? ORDER BY name")
-        .all(type, categoryId) as Array<{
-          id: string;
-          type: string;
-          name: string;
-          poster_url: string | null;
-          category_id: string | null;
-        }>;
-
-      return rows.map((row) => ({
-        id: row.id,
-        type: row.type as "vod" | "series",
-        name: row.name,
-        poster_url: row.poster_url,
-        category_id: row.category_id,
-      }));
+      query =
+        "SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? AND category_id = ? ORDER BY name";
+      params = [type, categoryId];
     } else {
-      const rows = database
-        .prepare("SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? ORDER BY name")
-        .all(type) as Array<{
-          id: string;
-          type: string;
-          name: string;
-          poster_url: string | null;
-          category_id: string | null;
-        }>;
-
-      return rows.map((row) => ({
-        id: row.id,
-        type: row.type as "vod" | "series",
-        name: row.name,
-        poster_url: row.poster_url,
-        category_id: row.category_id,
-      }));
+      query = "SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? ORDER BY name";
+      params = [type];
     }
+
+    // Add pagination if limit is specified
+    if (limit !== undefined && limit > 0) {
+      query += " LIMIT ?";
+      params.push(limit);
+      if (offset !== undefined && offset > 0) {
+        query += " OFFSET ?";
+        params.push(offset);
+      }
+    }
+
+    const rows = database.prepare(query).all(...params) as Array<{
+      id: string;
+      type: string;
+      name: string;
+      poster_url: string | null;
+      category_id: string | null;
+    }>;
+
+    return rows.map((row) => ({
+      id: row.id,
+      type: row.type as "vod" | "series",
+      name: row.name,
+      poster_url: row.poster_url,
+      category_id: row.category_id,
+    }));
   } catch (error) {
     console.error("Get items error:", error);
     return [];

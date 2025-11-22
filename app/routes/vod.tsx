@@ -29,18 +29,39 @@ export default function VOD() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(50); // Default: 50 items per page
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  } | null>(null);
 
   useEffect(() => {
     loadData();
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1); // Reset to first page when category changes
     if (selectedCategory !== null) {
       loadStreams(selectedCategory);
     } else {
       loadStreams();
     }
   }, [selectedCategory]);
+
+  useEffect(() => {
+    // Reload items when page changes
+    if (selectedCategory !== null) {
+      loadStreams(selectedCategory);
+    } else {
+      loadStreams();
+    }
+  }, [currentPage]);
 
   const loadData = async () => {
     const config = getConfig();
@@ -66,13 +87,15 @@ export default function VOD() {
     }
   };
 
-  const loadItems = async (categoryId?: string) => {
+  const loadItems = async (categoryId?: string, page: number = currentPage) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const url = new URL("/api/items", window.location.origin);
       url.searchParams.set("type", "vod");
+      url.searchParams.set("limit", itemsPerPage.toString());
+      url.searchParams.set("page", page.toString());
       if (categoryId) {
         url.searchParams.set("categoryId", categoryId);
       }
@@ -84,6 +107,7 @@ export default function VOD() {
 
       const data = await response.json();
       setItems(data.items || []);
+      setPagination(data.pagination || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load items");
     } finally {
@@ -92,7 +116,12 @@ export default function VOD() {
   };
 
   const loadStreams = async (categoryId?: string) => {
-    await loadItems(categoryId);
+    await loadItems(categoryId, currentPage);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (error && !categories.length) {
@@ -179,31 +208,96 @@ export default function VOD() {
         )}
 
         {!isLoading && items.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                {item.poster_url && (
-                  <img
-                    src={item.poster_url}
-                    alt={item.name}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23ddd' width='100' height='100'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='14' dy='10.5' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
-                    }}
-                  />
-                )}
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                    {item.name}
-                  </h3>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  {item.poster_url && (
+                    <img
+                      src={item.poster_url}
+                      alt={item.name}
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23ddd' width='100' height='100'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='14' dy='10.5' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                      }}
+                    />
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                      {item.name}
+                    </h3>
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPreviousPage || isLoading}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    pagination.hasPreviousPage && !isLoading
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Previous
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    let pageNum: number;
+                    if (pagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= pagination.totalPages - 2) {
+                      pageNum = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        disabled={isLoading}
+                        className={`px-4 py-2 rounded-md transition-colors ${
+                          currentPage === pageNum
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        } ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNextPage || isLoading}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    pagination.hasNextPage && !isLoading
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Next
+                </button>
+
+                <span className="ml-4 text-sm text-gray-600 dark:text-gray-400">
+                  Page {currentPage} of {pagination.totalPages} ({pagination.limit} items per page)
+                </span>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>
