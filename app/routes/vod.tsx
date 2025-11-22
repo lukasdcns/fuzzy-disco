@@ -186,6 +186,69 @@ export default function VOD() {
           </div>
         )}
 
+        {/* Pagination Controls at Top */}
+        {pagination && pagination.totalPages > 1 && !isLoading && items.length > 0 && (
+          <div className="mb-6 flex items-center justify-center gap-2 flex-wrap">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.hasPreviousPage || isLoading}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                pagination.hasPreviousPage && !isLoading
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Previous
+            </button>
+
+            <div className="flex items-center gap-2">
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    disabled={isLoading}
+                    className={`px-4 py-2 rounded-md transition-colors ${
+                      currentPage === pageNum
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    } ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.hasNextPage || isLoading}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                pagination.hasNextPage && !isLoading
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Next
+            </button>
+
+            <span className="ml-4 text-sm text-gray-600 dark:text-gray-400">
+              Page {currentPage} of {pagination.totalPages} ({pagination.limit} items per page)
+            </span>
+          </div>
+        )}
+
         {isLoading && (
           <div className="text-center py-12">
             <p className="text-gray-600 dark:text-gray-400">Loading...</p>
