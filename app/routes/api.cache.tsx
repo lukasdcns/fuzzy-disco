@@ -13,8 +13,11 @@ import {
  * POST /api/cache/clear - Clear all cache
  * POST /api/cache/clear-expired - Clear expired entries
  * POST /api/cache/invalidate?pattern=... - Invalidate entries matching pattern
+ *
+ * @param args - Route loader arguments containing the request
+ * @returns Response with cache statistics or error
  */
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs): Promise<Response> {
   const url = new URL(request.url);
   const path = url.pathname;
 
@@ -26,7 +29,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   return data({ error: "Invalid endpoint" }, { status: 404 });
 }
 
-export async function action({ request }: Route.ActionArgs) {
+/**
+ * Cache management action handler
+ *
+ * @param args - Route action arguments containing the request
+ * @returns Response with operation result or error
+ */
+export async function action({ request }: Route.ActionArgs): Promise<Response> {
   const url = new URL(request.url);
   const path = url.pathname;
   const formData = await request.formData();

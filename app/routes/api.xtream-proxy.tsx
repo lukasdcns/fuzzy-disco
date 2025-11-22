@@ -9,8 +9,11 @@ import { getCache, setCache, generateCacheKey, clearExpiredCache, storeItems } f
  * Includes caching to reduce bandwidth and improve performance
  * 
  * Usage: GET /api/xtream-proxy?url=<encoded-xtream-api-url>&refresh=true (optional)
+ *
+ * @param args - Route loader arguments containing the request
+ * @returns Response with proxied API data or error
  */
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs): Promise<Response> {
   const url = new URL(request.url);
   const targetUrl = url.searchParams.get("url");
   const forceRefresh = url.searchParams.get("refresh") === "true";
