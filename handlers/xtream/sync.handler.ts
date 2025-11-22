@@ -1,18 +1,31 @@
-// Sync Handler - Business logic for content synchronization
-
+/**
+ * Sync Handler - Business logic for content synchronization
+ * Handles bulk synchronization of VOD and Series content from Xtream API to database
+ */
 import type { XtreamConfig } from "../../../types/xtream.types";
 import type { CachedItem } from "../../../types/cache.types";
 import { xtreamService } from "../../../services/api/xtream.service";
 import { storeItems, clearItems } from "../../../app/lib/cache";
 
-export async function syncAllContentHandler(config: XtreamConfig): Promise<{
+interface SyncResults {
+  vod: { fetched: number; stored: number; errors: string[] };
+  series: { fetched: number; stored: number; errors: string[] };
+}
+
+interface SyncResponse {
   success: boolean;
   message: string;
-  results: {
-    vod: { fetched: number; stored: number; errors: string[] };
-    series: { fetched: number; stored: number; errors: string[] };
-  };
-}> {
+  results: SyncResults;
+}
+
+/**
+ * Synchronizes all VOD and Series content from Xtream API to local database
+ * Fetches all content, clears existing items, and stores new ones
+ *
+ * @param config - Xtream API configuration
+ * @returns Sync response with success status, message, and detailed results
+ */
+export async function syncAllContentHandler(config: XtreamConfig): Promise<SyncResponse> {
   const results = {
     vod: { fetched: 0, stored: 0, errors: [] as string[] },
     series: { fetched: 0, stored: 0, errors: [] as string[] },
