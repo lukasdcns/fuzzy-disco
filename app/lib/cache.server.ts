@@ -1,3 +1,9 @@
+// Server-side only - this file should never be imported in client code
+// Check if we're in a browser environment
+if (typeof window !== "undefined" || typeof process === "undefined" || !process.versions?.node) {
+  throw new Error("cache.ts is server-side only and cannot be imported in client code");
+}
+
 import Database from "better-sqlite3";
 import { join } from "node:path";
 import { mkdirSync } from "node:fs";

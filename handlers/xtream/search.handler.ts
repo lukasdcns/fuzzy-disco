@@ -3,7 +3,7 @@
  * Handles searching items in the database with pagination support
  */
 import type { CachedItem } from "../../types/cache.types";
-import { searchItems, getSearchCount } from "../../app/lib/cache";
+import { searchItems, getSearchCount } from "../../app/lib/cache.server";
 
 interface SearchOptions {
   type?: "vod" | "series";

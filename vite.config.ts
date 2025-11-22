@@ -11,4 +11,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["better-sqlite3"],
   },
+  resolve: {
+    conditions: ["node"],
+  },
 });
