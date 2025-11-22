@@ -10,10 +10,8 @@ export default defineConfig({
     tsconfigPaths(),
   ],
   ssr: {
-    noExternal: ["better-sqlite3"],
-    resolve: {
-      external: ["better-sqlite3"],
-    },
+    // Externalize better-sqlite3 for SSR - it's a native module that shouldn't be bundled
+    noExternal: [],
   },
   optimizeDeps: {
     exclude: ["better-sqlite3"],
