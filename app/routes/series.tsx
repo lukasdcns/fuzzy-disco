@@ -3,14 +3,23 @@ import { useNavigate } from "react-router";
 import type { Route } from "./+types/series";
 import { useSeries } from "../../hooks/useSeries";
 
-export function meta({}: Route.MetaArgs) {
+/**
+ * Meta function for the series page route
+ * @param _args - Route meta arguments
+ * @returns Meta tags for SEO
+ */
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Series Content" },
     { name: "description", content: "Browse series content from Xtream API" },
   ];
 }
 
-export default function Series() {
+/**
+ * Series page component
+ * Displays series content with category filtering, pagination, and series details
+ */
+export default function Series(): JSX.Element {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,13 +35,13 @@ export default function Series() {
     setCurrentPage(1); // Reset to first page when category changes
   }, [selectedCategory]);
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number): void => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSeriesClick = async (seriesId: string) => {
-    await loadSeriesInfo(parseInt(seriesId));
+  const handleSeriesClick = async (seriesId: string): Promise<void> => {
+    await loadSeriesInfo(parseInt(seriesId, 10));
   };
 
   if (error && categories.length === 0) {

@@ -1,17 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Route } from "./+types/vod";
-import type { CachedItem } from "../../types/cache.types";
 import { useVOD } from "../../hooks/useVOD";
 
-export function meta({}: Route.MetaArgs) {
+/**
+ * Meta function for the VOD page route
+ * @param _args - Route meta arguments
+ * @returns Meta tags for SEO
+ */
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "VOD Content" },
     { name: "description", content: "Browse VOD content from Xtream API" },
   ];
 }
 
-export default function VOD() {
+/**
+ * VOD page component
+ * Displays VOD content with category filtering and pagination
+ */
+export default function VOD(): JSX.Element {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,7 +35,7 @@ export default function VOD() {
     setCurrentPage(1); // Reset to first page when category changes
   }, [selectedCategory]);
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number): void => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

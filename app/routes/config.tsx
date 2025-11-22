@@ -5,14 +5,28 @@ import type { XtreamConfig } from "../../types/xtream.types";
 import { useXtreamConfig } from "../../hooks/useXtreamConfig";
 import { useSync } from "../../hooks/useSync";
 
-export function meta({}: Route.MetaArgs) {
+/**
+ * Meta function for the config page route
+ * @param _args - Route meta arguments
+ * @returns Meta tags for SEO
+ */
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Xtream API Configuration" },
     { name: "description", content: "Configure your Xtream API connection" },
   ];
 }
 
-export default function Config() {
+interface TestResult {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Configuration page component
+ * Allows users to configure and test their Xtream API connection
+ */
+export default function Config(): JSX.Element {
   const navigate = useNavigate();
   const { config: savedConfig, testConnection } = useXtreamConfig();
   const { syncAllContent } = useSync();
@@ -23,9 +37,9 @@ export default function Config() {
     port: 80,
     useProxy: true, // Default to using proxy to bypass CORS/DNS issues
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [saved, setSaved] = useState<boolean>(false);
 
   useEffect(() => {
     if (savedConfig) {
@@ -37,7 +51,7 @@ export default function Config() {
     }
   }, [savedConfig]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
     setTestResult(null);

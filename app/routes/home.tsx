@@ -2,14 +2,23 @@ import { Link } from "react-router";
 import type { Route } from "./+types/home";
 import { useXtreamConfig } from "../../hooks/useXtreamConfig";
 
-export function meta({}: Route.MetaArgs) {
+/**
+ * Meta function for the home page route
+ * @param _args - Route meta arguments
+ * @returns Meta tags for SEO
+ */
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Xtream API Client" },
     { name: "description", content: "Connect to Xtream API and browse VOD/Series content" },
   ];
 }
 
-export default function Home() {
+/**
+ * Home page component
+ * Displays navigation cards and configuration status
+ */
+export default function Home(): JSX.Element {
   const { config, isConfigured } = useXtreamConfig();
 
   return (
