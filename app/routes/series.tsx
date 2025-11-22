@@ -90,6 +90,13 @@ export default function Series(): JSX.Element {
   }
 
   if (selectedSeries) {
+    // Ensure episodes is always an array
+    const episodes = Array.isArray(selectedSeries.episodes) 
+      ? selectedSeries.episodes 
+      : selectedSeries.episodes 
+        ? Object.values(selectedSeries.episodes).filter((ep: unknown) => typeof ep === "object" && ep !== null)
+        : [];
+
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
         <div className="max-w-7xl mx-auto">
@@ -151,22 +158,26 @@ export default function Series(): JSX.Element {
 
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Episodes</h2>
             <div className="space-y-2">
-              {selectedSeries.episodes.map((episode) => (
-                <div
-                  key={episode.id}
-                  className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                >
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{episode.title}</h3>
-                  {episode.info.plot && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{episode.info.plot}</p>
-                  )}
-                  {episode.info.duration && (
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      Duration: {episode.info.duration}
-                    </p>
-                  )}
-                </div>
-              ))}
+              {episodes.length > 0 ? (
+                episodes.map((episode: { id: number; title: string; info?: { plot?: string; duration?: string } }) => (
+                  <div
+                    key={episode.id}
+                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{episode.title}</h3>
+                    {episode.info?.plot && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{episode.info.plot}</p>
+                    )}
+                    {episode.info?.duration && (
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        Duration: {episode.info.duration}
+                      </p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-600 dark:text-gray-400">No episodes available.</p>
+              )}
             </div>
           </div>
         </div>
