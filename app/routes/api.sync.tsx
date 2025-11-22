@@ -11,8 +11,11 @@ import { syncAllContentHandler } from "../../handlers/xtream/sync.handler";
  * 1. Fetches all VOD streams (without category filter = all streams)
  * 2. Fetches all Series (without category filter = all series)
  * 3. Stores them in the items table
+ *
+ * @param args - Route action arguments containing the request
+ * @returns Response with sync results or error
  */
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs): Promise<Response> {
   if (request.method !== "POST") {
     return data({ error: "Method not allowed" }, { status: 405 });
   }

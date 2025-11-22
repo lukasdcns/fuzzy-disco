@@ -6,8 +6,12 @@ import { getItems, getItemCount } from "../lib/cache";
  * API route to serve cached items from the database
  * GET /api/items?type=vod&categoryId=123 (optional categoryId)
  * GET /api/items?type=series&categoryId=456 (optional categoryId)
+ * Supports pagination: ?limit=X&page=Y
+ *
+ * @param args - Route loader arguments containing the request
+ * @returns Response with paginated items or error
  */
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs): Promise<Response> {
   const url = new URL(request.url);
   const type = url.searchParams.get("type");
   const categoryId = url.searchParams.get("categoryId") || undefined;
