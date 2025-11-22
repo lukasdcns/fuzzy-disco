@@ -45,10 +45,42 @@ export default function Config() {
       if (isValid) {
         saveConfig(config);
         setSaved(true);
-        setTestResult({ success: true, message: "Connection successful! Configuration saved." });
+        setTestResult({ success: true, message: "Connection successful! Configuration saved. Syncing content..." });
+        
+        // Automatically trigger content sync after successful login/save
+        try {
+          const syncResponse = await fetch("/api/sync", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ config }),
+          });
+
+          const syncData = await syncResponse.json();
+          if (syncData.success) {
+            setTestResult({
+              success: true,
+              message: `Configuration saved! Synced ${syncData.results?.vod?.stored || 0} VOD streams and ${syncData.results?.series?.stored || 0} series to database.`,
+            });
+          } else {
+            setTestResult({
+              success: true,
+              message: "Configuration saved! Content sync started but may have encountered some issues. Check Settings for details.",
+            });
+          }
+        } catch (syncError) {
+          // Don't fail the save if sync fails - just log it
+          console.error("Content sync failed:", syncError);
+          setTestResult({
+            success: true,
+            message: "Configuration saved! You can sync content manually from Settings.",
+          });
+        }
+
         setTimeout(() => {
           navigate("/");
-        }, 1500);
+        }, 3000); // Give more time to see sync message
       } else {
         setTestResult({ success: false, message: "Connection failed. Please check your credentials." });
       }
