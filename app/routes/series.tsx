@@ -389,13 +389,13 @@ export default function Series(): JSX.Element {
             </div>
 
             {/* Pagination Controls */}
-            {pagination && pagination.totalPages > 1 && (
+            {displayPagination && displayPagination.totalPages > 1 && (
               <div className="mt-8 flex items-center justify-center gap-2">
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={!pagination.hasPreviousPage || isLoading}
+                  onClick={(): void => handlePageChange(currentPage - 1)}
+                  disabled={!displayPagination.hasPreviousPage || displayLoading}
                   className={`px-4 py-2 rounded-md transition-colors ${
-                    pagination.hasPreviousPage && !isLoading
+                    displayPagination.hasPreviousPage && !displayLoading
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                   }`}
@@ -404,14 +404,14 @@ export default function Series(): JSX.Element {
                 </button>
 
                 <div className="flex items-center gap-2">
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  {Array.from({ length: Math.min(5, displayPagination.totalPages) }, (_, i) => {
                     let pageNum: number;
-                    if (pagination.totalPages <= 5) {
+                    if (displayPagination.totalPages <= 5) {
                       pageNum = i + 1;
                     } else if (currentPage <= 3) {
                       pageNum = i + 1;
-                    } else if (currentPage >= pagination.totalPages - 2) {
-                      pageNum = pagination.totalPages - 4 + i;
+                    } else if (currentPage >= displayPagination.totalPages - 2) {
+                      pageNum = displayPagination.totalPages - 4 + i;
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
@@ -419,13 +419,13 @@ export default function Series(): JSX.Element {
                     return (
                       <button
                         key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        disabled={isLoading}
+                        onClick={(): void => handlePageChange(pageNum)}
+                        disabled={displayLoading}
                         className={`px-4 py-2 rounded-md transition-colors ${
                           currentPage === pageNum
                             ? "bg-blue-600 text-white"
                             : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                        } ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
+                        } ${displayLoading ? "cursor-not-allowed opacity-50" : ""}`}
                       >
                         {pageNum}
                       </button>
@@ -434,10 +434,10 @@ export default function Series(): JSX.Element {
                 </div>
 
                 <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={!pagination.hasNextPage || isLoading}
+                  onClick={(): void => handlePageChange(currentPage + 1)}
+                  disabled={!displayPagination.hasNextPage || displayLoading}
                   className={`px-4 py-2 rounded-md transition-colors ${
-                    pagination.hasNextPage && !isLoading
+                    displayPagination.hasNextPage && !displayLoading
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                   }`}
