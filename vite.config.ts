@@ -5,4 +5,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  ssr: {
+    noExternal: ["better-sqlite3"],
+  },
+  optimizeDeps: {
+    exclude: ["better-sqlite3"],
+  },
 });
