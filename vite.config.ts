@@ -11,15 +11,11 @@ export default defineConfig({
   ],
   ssr: {
     noExternal: ["better-sqlite3"],
+    resolve: {
+      external: ["better-sqlite3"],
+    },
   },
   optimizeDeps: {
     exclude: ["better-sqlite3"],
-  },
-  resolve: {
-    conditions: ["node"],
-    alias: {
-      // Ensure server-only files are not bundled for client
-      "./cache.server": "./cache.server",
-    },
   },
 });
