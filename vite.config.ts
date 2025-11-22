@@ -4,7 +4,11 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  plugins: [
+    tailwindcss(),
+    reactRouter(),
+    tsconfigPaths(),
+  ],
   ssr: {
     noExternal: ["better-sqlite3"],
   },
@@ -13,5 +17,9 @@ export default defineConfig({
   },
   resolve: {
     conditions: ["node"],
+    alias: {
+      // Ensure server-only files are not bundled for client
+      "./cache.server": "./cache.server",
+    },
   },
 });
