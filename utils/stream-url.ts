@@ -33,19 +33,9 @@ export function buildVODStreamUrl(
     url.port = config.port.toString();
   }
   
-  const targetUrl = url.toString();
-  
-  // Default useProxy to true if not explicitly set to false
-  const useProxy = config.useProxy !== false;
-  
-  // If proxy is enabled, route through server-side proxy
-  if (useProxy && typeof window !== "undefined") {
-    const proxyUrl = new URL("/api/xtream-proxy", window.location.origin);
-    proxyUrl.searchParams.set("url", targetUrl);
-    return proxyUrl.toString();
-  }
-  
-  return targetUrl;
+  // For streaming URLs, always return the direct URL (no proxy)
+  // The browser can handle video streaming directly
+  return url.toString();
 }
 
 /**
@@ -77,17 +67,7 @@ export function buildSeriesStreamUrl(
     url.port = config.port.toString();
   }
   
-  const targetUrl = url.toString();
-  
-  // Default useProxy to true if not explicitly set to false
-  const useProxy = config.useProxy !== false;
-  
-  // If proxy is enabled, route through server-side proxy
-  if (useProxy && typeof window !== "undefined") {
-    const proxyUrl = new URL("/api/xtream-proxy", window.location.origin);
-    proxyUrl.searchParams.set("url", targetUrl);
-    return proxyUrl.toString();
-  }
-  
-  return targetUrl;
+  // For streaming URLs, always return the direct URL (no proxy)
+  // The browser can handle video streaming directly
+  return url.toString();
 }
