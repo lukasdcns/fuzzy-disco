@@ -41,6 +41,7 @@ interface UseSeriesReturn {
   error: string | null;
   pagination: PaginationState | null;
   loadSeriesInfo: (seriesId: number) => Promise<void>;
+  clearSelectedSeries: () => void;
   reload: () => Promise<void>;
 }
 
@@ -94,6 +95,10 @@ export function useSeries(options: UseSeriesOptions = {}): UseSeriesReturn {
     }
   };
 
+  const clearSelectedSeries = (): void => {
+    setSelectedSeries(null);
+  };
+
   const reload = async (): Promise<void> => {
     await loadItems(options.categoryId, options.page);
   };
@@ -115,6 +120,7 @@ export function useSeries(options: UseSeriesOptions = {}): UseSeriesReturn {
     error,
     pagination,
     loadSeriesInfo,
+    clearSelectedSeries,
     reload,
   };
 }

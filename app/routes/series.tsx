@@ -110,7 +110,7 @@ export default function Series(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
   
-  const { categories, items, selectedSeries, isLoading, error, pagination, loadSeriesInfo } = useSeries({
+  const { categories, items, selectedSeries, isLoading, error, pagination, loadSeriesInfo, clearSelectedSeries } = useSeries({
     categoryId: selectedCategory || undefined,
     page: currentPage,
     limit: itemsPerPage,
