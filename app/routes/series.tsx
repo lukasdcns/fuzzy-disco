@@ -58,7 +58,7 @@ function EpisodeList({ episodes, seriesInfo, seriesId }: EpisodeListProps): JSX.
             className={`bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer ${
               selectedEpisodeId === episode.id ? "ring-2 ring-blue-500" : ""
             }`}
-            onClick={() => handleEpisodeClick(episode.id, episode.container_extension)}
+            onClick={() => handleEpisodeClick(episode.id)}
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">

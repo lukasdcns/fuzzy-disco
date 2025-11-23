@@ -6,17 +6,15 @@ import type { XtreamConfig } from "../types/xtream.types";
 
 /**
  * Builds a streaming URL for a VOD movie
- * Format: url/username/password/contentid
+ * Format: http://urlxtream/user/pass/id
  *
  * @param config - Xtream API configuration
  * @param streamId - The stream ID of the VOD content
- * @param extension - File extension (e.g., "mp4", "mkv") - optional, may not be needed
  * @returns Complete streaming URL, potentially proxied through server
  */
 export function buildVODStreamUrl(
   config: XtreamConfig,
-  streamId: number,
-  extension?: string
+  streamId: number
 ): string {
   let baseUrl = config.serverUrl.trim().replace(/\/$/, "");
   
@@ -25,10 +23,8 @@ export function buildVODStreamUrl(
     baseUrl = `http://${baseUrl}`;
   }
   
-  // Format: url/username/password/contentid
-  const path = extension 
-    ? `/${config.username}/${config.password}/${streamId}.${extension}`
-    : `/${config.username}/${config.password}/${streamId}`;
+  // Format: http://urlxtream/user/pass/id
+  const path = `/${config.username}/${config.password}/${streamId}`;
   
   const url = new URL(path, baseUrl);
   
@@ -54,17 +50,15 @@ export function buildVODStreamUrl(
 
 /**
  * Builds a streaming URL for a Series episode
- * Format: url/username/password/contentid
+ * Format: http://urlxtream/user/pass/id
  *
  * @param config - Xtream API configuration
  * @param episodeId - The episode ID
- * @param extension - File extension (e.g., "mp4", "mkv") - optional, may not be needed
  * @returns Complete streaming URL, potentially proxied through server
  */
 export function buildSeriesStreamUrl(
   config: XtreamConfig,
-  episodeId: number,
-  extension?: string
+  episodeId: number
 ): string {
   let baseUrl = config.serverUrl.trim().replace(/\/$/, "");
   
@@ -73,10 +67,8 @@ export function buildSeriesStreamUrl(
     baseUrl = `http://${baseUrl}`;
   }
   
-  // Format: url/username/password/contentid
-  const path = extension 
-    ? `/${config.username}/${config.password}/${episodeId}.${extension}`
-    : `/${config.username}/${config.password}/${episodeId}`;
+  // Format: http://urlxtream/user/pass/id
+  const path = `/${config.username}/${config.password}/${episodeId}`;
   
   const url = new URL(path, baseUrl);
   
