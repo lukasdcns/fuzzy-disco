@@ -22,14 +22,15 @@ function EpisodeList({ episodes, seriesInfo, seriesId }: EpisodeListProps): JSX.
   const [selectedEpisodeId, setSelectedEpisodeId] = useState<number | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
 
-  const handleEpisodeClick = (episodeId: number, extension: string): void => {
+  const handleEpisodeClick = (episodeId: number): void => {
     const config = getConfig();
     if (!config) {
       alert("Please configure your Xtream API connection first.");
       return;
     }
 
-    const url = buildSeriesStreamUrl(config, episodeId, extension);
+    // Format: url/username/password/contentid
+    const url = buildSeriesStreamUrl(config, episodeId);
     setStreamUrl(url);
     setSelectedEpisodeId(episodeId);
   };
@@ -181,7 +182,7 @@ export default function Series(): JSX.Element {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
         <div className="max-w-7xl mx-auto">
           <button
-            onClick={(): void => setSelectedSeries(null)}
+            onClick={(): void => clearSelectedSeries()}
             className="mb-6 text-blue-600 dark:text-blue-400 hover:underline"
           >
             ← Back to Series List

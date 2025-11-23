@@ -6,16 +6,17 @@ import type { XtreamConfig } from "../types/xtream.types";
 
 /**
  * Builds a streaming URL for a VOD movie
+ * Format: url/username/password/contentid
  *
  * @param config - Xtream API configuration
  * @param streamId - The stream ID of the VOD content
- * @param extension - File extension (e.g., "mp4", "mkv")
+ * @param extension - File extension (e.g., "mp4", "mkv") - optional, may not be needed
  * @returns Complete streaming URL, potentially proxied through server
  */
 export function buildVODStreamUrl(
   config: XtreamConfig,
   streamId: number,
-  extension: string = "mp4"
+  extension?: string
 ): string {
   let baseUrl = config.serverUrl.trim().replace(/\/$/, "");
   
@@ -24,7 +25,12 @@ export function buildVODStreamUrl(
     baseUrl = `http://${baseUrl}`;
   }
   
-  const url = new URL(`/movie/${config.username}/${config.password}/${streamId}.${extension}`, baseUrl);
+  // Format: url/username/password/contentid
+  const path = extension 
+    ? `/${config.username}/${config.password}/${streamId}.${extension}`
+    : `/${config.username}/${config.password}/${streamId}`;
+  
+  const url = new URL(path, baseUrl);
   
   // Set port if specified and different from default
   if (config.port && config.port !== 80 && config.port !== 443) {
@@ -48,16 +54,17 @@ export function buildVODStreamUrl(
 
 /**
  * Builds a streaming URL for a Series episode
+ * Format: url/username/password/contentid
  *
  * @param config - Xtream API configuration
  * @param episodeId - The episode ID
- * @param extension - File extension (e.g., "mp4", "mkv")
+ * @param extension - File extension (e.g., "mp4", "mkv") - optional, may not be needed
  * @returns Complete streaming URL, potentially proxied through server
  */
 export function buildSeriesStreamUrl(
   config: XtreamConfig,
   episodeId: number,
-  extension: string = "mp4"
+  extension?: string
 ): string {
   let baseUrl = config.serverUrl.trim().replace(/\/$/, "");
   
@@ -66,7 +73,12 @@ export function buildSeriesStreamUrl(
     baseUrl = `http://${baseUrl}`;
   }
   
-  const url = new URL(`/series/${config.username}/${config.password}/${episodeId}.${extension}`, baseUrl);
+  // Format: url/username/password/contentid
+  const path = extension 
+    ? `/${config.username}/${config.password}/${episodeId}.${extension}`
+    : `/${config.username}/${config.password}/${episodeId}`;
+  
+  const url = new URL(path, baseUrl);
   
   // Set port if specified and different from default
   if (config.port && config.port !== 80 && config.port !== 443) {

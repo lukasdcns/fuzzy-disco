@@ -65,9 +65,8 @@ export default function VODDetail(): JSX.Element {
 
         setVodInfo(stream);
 
-        // Build streaming URL
-        const extension = stream.container_extension || "mp4";
-        const streamUrlValue = buildVODStreamUrl(config, stream.stream_id, extension);
+        // Build streaming URL - Format: url/username/password/contentid
+        const streamUrlValue = buildVODStreamUrl(config, stream.stream_id);
         setStreamUrl(streamUrlValue);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load VOD information");
