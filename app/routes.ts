@@ -8,6 +8,7 @@ export default [
   route("vod/:id", "routes/vod.$id.tsx"),
   route("series", "routes/series.tsx"),
   route("api/xtream-proxy", "routes/api.xtream-proxy.tsx"),
+  route("api/stream", "routes/api.stream.tsx"),
   route("api/cache/*", "routes/api.cache.tsx"),
   route("api/items", "routes/api.items.tsx"),
   route("api/search", "routes/api.search.tsx"), // Added for search API
