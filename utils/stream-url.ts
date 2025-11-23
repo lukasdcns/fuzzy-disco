@@ -33,8 +33,21 @@ export function buildVODStreamUrl(
     url.port = config.port.toString();
   }
   
-  // For streaming URLs, always return the direct URL (no proxy)
-  // The browser can handle video streaming directly
+  // Use proxy for streaming URLs to bypass CORS restrictions
+  // Format: /api/stream?serverUrl=...&username=...&password=...&contentId=...&type=vod
+  if (typeof window !== "undefined") {
+    const proxyUrl = new URL("/api/stream", window.location.origin);
+    proxyUrl.searchParams.set("serverUrl", config.serverUrl);
+    proxyUrl.searchParams.set("username", config.username);
+    proxyUrl.searchParams.set("password", config.password);
+    proxyUrl.searchParams.set("contentId", streamId.toString());
+    proxyUrl.searchParams.set("type", "vod");
+    if (config.port) {
+      proxyUrl.searchParams.set("port", config.port.toString());
+    }
+    return proxyUrl.toString();
+  }
+  
   return url.toString();
 }
 
@@ -44,7 +57,7 @@ export function buildVODStreamUrl(
  *
  * @param config - Xtream API configuration
  * @param episodeId - The episode ID
- * @returns Complete streaming URL (direct, no proxy)
+ * @returns Complete streaming URL (proxied through /api/stream to bypass CORS)
  */
 export function buildSeriesStreamUrl(
   config: XtreamConfig,
@@ -67,7 +80,20 @@ export function buildSeriesStreamUrl(
     url.port = config.port.toString();
   }
   
-  // For streaming URLs, always return the direct URL (no proxy)
-  // The browser can handle video streaming directly
+  // Use proxy for streaming URLs to bypass CORS restrictions
+  // Format: /api/stream?serverUrl=...&username=...&password=...&contentId=...&type=series
+  if (typeof window !== "undefined") {
+    const proxyUrl = new URL("/api/stream", window.location.origin);
+    proxyUrl.searchParams.set("serverUrl", config.serverUrl);
+    proxyUrl.searchParams.set("username", config.username);
+    proxyUrl.searchParams.set("password", config.password);
+    proxyUrl.searchParams.set("contentId", episodeId.toString());
+    proxyUrl.searchParams.set("type", "series");
+    if (config.port) {
+      proxyUrl.searchParams.set("port", config.port.toString());
+    }
+    return proxyUrl.toString();
+  }
+  
   return url.toString();
 }
