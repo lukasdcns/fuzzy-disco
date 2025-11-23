@@ -61,12 +61,8 @@ export async function getSeriesInfoHandler(seriesId: number): Promise<XtreamSeri
   
   // Normalize episodes to always be an array
   // Xtream API sometimes returns episodes as an object with numeric keys
-  if (seriesInfo.episodes && !Array.isArray(seriesInfo.episodes)) {
-    seriesInfo.episodes = Object.values(seriesInfo.episodes).filter(
-      (ep): ep is XtreamSeriesInfo["episodes"][0] => 
-        typeof ep === "object" && ep !== null && "id" in ep && "title" in ep
-    ) as XtreamSeriesInfo["episodes"];
-  }
-  
-  return seriesInfo;
+  return {
+    ...seriesInfo,
+    episodes: normalizeEpisodes(seriesInfo.episodes),
+  };
 }

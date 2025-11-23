@@ -5,7 +5,7 @@
 import type { XtreamConfig } from "../../types/xtream.types";
 import type { CachedItem } from "../../types/cache.types";
 import { xtreamService } from "../../services/api/xtream.service";
-import { storeItems, clearItems } from "../../app/lib/cache";
+import { storeItems, clearItems } from "../../app/lib/cache.server";
 
 interface SyncResults {
   vod: { fetched: number; stored: number; errors: string[] };

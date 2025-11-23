@@ -274,7 +274,8 @@ export default function VOD(): JSX.Element {
               {displayItems.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/vod/${item.id}`)}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                 >
                   {item.poster_url && (
                     <img

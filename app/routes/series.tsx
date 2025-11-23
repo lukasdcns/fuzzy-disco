@@ -3,6 +3,90 @@ import { useNavigate } from "react-router";
 import type { Route } from "./+types/series";
 import { useSeries } from "../../hooks/useSeries";
 import { useSearch } from "../../hooks/useSearch";
+import { VideoPlayer } from "../../views/VideoPlayer";
+import { buildSeriesStreamUrl } from "../../utils/stream-url";
+import { getConfig } from "../../utils/config";
+import type { XtreamSeriesInfo } from "../../types/xtream.types";
+
+/**
+ * EpisodeList Component
+ * Displays episodes with video player
+ */
+interface EpisodeListProps {
+  episodes: XtreamSeriesInfo["episodes"];
+  seriesInfo: XtreamSeriesInfo["info"];
+  seriesId: number;
+}
+
+function EpisodeList({ episodes, seriesInfo, seriesId }: EpisodeListProps): JSX.Element {
+  const [selectedEpisodeId, setSelectedEpisodeId] = useState<number | null>(null);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+
+  const handleEpisodeClick = (episodeId: number, extension: string): void => {
+    const config = getConfig();
+    if (!config) {
+      alert("Please configure your Xtream API connection first.");
+      return;
+    }
+
+    const url = buildSeriesStreamUrl(config, episodeId, extension);
+    setStreamUrl(url);
+    setSelectedEpisodeId(episodeId);
+  };
+
+  if (episodes.length === 0) {
+    return <p className="text-gray-600 dark:text-gray-400">No episodes available.</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {selectedEpisodeId !== null && streamUrl && (
+        <div className="mb-6">
+          <VideoPlayer
+            streamUrl={streamUrl}
+            title={`${seriesInfo.name} - Episode ${selectedEpisodeId}`}
+            poster={seriesInfo.cover || undefined}
+          />
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {episodes.map((episode) => (
+          <div
+            key={episode.id}
+            className={`bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer ${
+              selectedEpisodeId === episode.id ? "ring-2 ring-blue-500" : ""
+            }`}
+            onClick={() => handleEpisodeClick(episode.id, episode.container_extension)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white">{episode.title}</h3>
+                {episode.info?.plot && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{episode.info.plot}</p>
+                )}
+                {episode.info?.duration && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    Duration: {episode.info.duration}
+                  </p>
+                )}
+              </div>
+              <div className="ml-4">
+                <svg
+                  className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Meta function for the series page route
@@ -153,28 +237,11 @@ export default function Series(): JSX.Element {
             </div>
 
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Episodes</h2>
-            <div className="space-y-2">
-              {episodes.length > 0 ? (
-                episodes.map((episode) => (
-                  <div
-                    key={episode.id}
-                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{episode.title}</h3>
-                    {episode.info?.plot && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{episode.info.plot}</p>
-                    )}
-                    {episode.info?.duration && (
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                        Duration: {episode.info.duration}
-                      </p>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-600 dark:text-gray-400">No episodes available.</p>
-              )}
-            </div>
+            <EpisodeList
+              episodes={episodes}
+              seriesInfo={selectedSeries.info}
+              seriesId={parseInt(selectedSeries.info.category_id || "0", 10)}
+            />
           </div>
         </div>
       </div>

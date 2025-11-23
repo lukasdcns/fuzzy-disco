@@ -5,6 +5,7 @@ export default [
   route("config", "routes/config.tsx"),
   route("settings", "routes/settings.tsx"),
   route("vod", "routes/vod.tsx"),
+  route("vod/:id", "routes/vod.$id.tsx"),
   route("series", "routes/series.tsx"),
   route("api/xtream-proxy", "routes/api.xtream-proxy.tsx"),
   route("api/cache/*", "routes/api.cache.tsx"),
