@@ -6,11 +6,11 @@ import type { XtreamConfig } from "../types/xtream.types";
 
 /**
  * Builds a streaming URL for a VOD movie
- * Format: http://urlxtream/user/pass/id
+ * Format: http://urlxtream:port/movies/user/pass/id
  *
  * @param config - Xtream API configuration
  * @param streamId - The stream ID of the VOD content
- * @returns Complete streaming URL, potentially proxied through server
+ * @returns Complete streaming URL (direct, no proxy)
  */
 export function buildVODStreamUrl(
   config: XtreamConfig,
@@ -23,8 +23,8 @@ export function buildVODStreamUrl(
     baseUrl = `http://${baseUrl}`;
   }
   
-  // Format: http://urlxtream/user/pass/id
-  const path = `/${config.username}/${config.password}/${streamId}`;
+  // Format: http://urlxtream:port/movies/user/pass/id
+  const path = `/movies/${config.username}/${config.password}/${streamId}`;
   
   const url = new URL(path, baseUrl);
   
@@ -40,11 +40,11 @@ export function buildVODStreamUrl(
 
 /**
  * Builds a streaming URL for a Series episode
- * Format: http://urlxtream/user/pass/id
+ * Format: http://urlxtream:port/series/user/pass/id
  *
  * @param config - Xtream API configuration
  * @param episodeId - The episode ID
- * @returns Complete streaming URL, potentially proxied through server
+ * @returns Complete streaming URL (direct, no proxy)
  */
 export function buildSeriesStreamUrl(
   config: XtreamConfig,
@@ -57,8 +57,8 @@ export function buildSeriesStreamUrl(
     baseUrl = `http://${baseUrl}`;
   }
   
-  // Format: http://urlxtream/user/pass/id
-  const path = `/${config.username}/${config.password}/${episodeId}`;
+  // Format: http://urlxtream:port/series/user/pass/id
+  const path = `/series/${config.username}/${config.password}/${episodeId}`;
   
   const url = new URL(path, baseUrl);
   
