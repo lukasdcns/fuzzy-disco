@@ -36,7 +36,7 @@ export async function loader({ request }: Route.LoaderArgs): Promise<Response> {
     }
 
     const path = type === "vod" 
-      ? `/movies/${username}/${password}/${contentId}`
+      ? `/movie/${username}/${password}/${contentId}`
       : `/series/${username}/${password}/${contentId}`;
 
     const streamUrl = new URL(path, baseUrl);

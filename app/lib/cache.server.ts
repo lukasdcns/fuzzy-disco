@@ -46,12 +46,13 @@ function getDatabase(): Database.Database {
         hit_count INTEGER DEFAULT 0,
         last_accessed INTEGER
       );
-      
+
       CREATE INDEX IF NOT EXISTS idx_expires_at ON cache(expires_at);
-      
+
       -- Items table for structured storage of VOD streams and Series
       CREATE TABLE IF NOT EXISTS items (
         id TEXT NOT NULL,
+        stream_id TEXT NOT NULL,
         type TEXT NOT NULL CHECK(type IN ('vod', 'series')),
         name TEXT NOT NULL,
         poster_url TEXT,
@@ -59,11 +60,51 @@ function getDatabase(): Database.Database {
         updated_at INTEGER NOT NULL,
         PRIMARY KEY (id, type)
       );
-      
+
       CREATE INDEX IF NOT EXISTS idx_items_type ON items(type);
       CREATE INDEX IF NOT EXISTS idx_items_category ON items(category_id);
       CREATE INDEX IF NOT EXISTS idx_items_updated ON items(updated_at);
     `);
+
+    // Migration: Add stream_id column if it doesn't exist
+    try {
+      const tableInfo = db.prepare("PRAGMA table_info(items)").all() as Array<{ name: string }>;
+      const hasStreamId = tableInfo.some(col => col.name === "stream_id");
+
+      if (!hasStreamId) {
+        // If stream_id column doesn't exist, we need to recreate the table
+        console.log("Migrating items table to add stream_id column...");
+        db.exec(`
+          DROP TABLE IF EXISTS items_old;
+          ALTER TABLE items RENAME TO items_old;
+
+          CREATE TABLE items (
+            id TEXT NOT NULL,
+            stream_id TEXT NOT NULL,
+            type TEXT NOT NULL CHECK(type IN ('vod', 'series')),
+            name TEXT NOT NULL,
+            poster_url TEXT,
+            category_id TEXT,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY (id, type)
+          );
+
+          -- Copy data from old table, using id as stream_id for existing records
+          INSERT INTO items (id, stream_id, type, name, poster_url, category_id, updated_at)
+          SELECT id, id, type, name, poster_url, category_id, updated_at
+          FROM items_old;
+
+          DROP TABLE items_old;
+
+          CREATE INDEX IF NOT EXISTS idx_items_type ON items(type);
+          CREATE INDEX IF NOT EXISTS idx_items_category ON items(category_id);
+          CREATE INDEX IF NOT EXISTS idx_items_updated ON items(updated_at);
+        `);
+        console.log("Migration completed successfully!");
+      }
+    } catch (error) {
+      console.error("Migration error:", error);
+    }
   }
   return db;
 }
@@ -257,10 +298,10 @@ export function storeItem(item: CachedItem): void {
 
     database
       .prepare(
-        `INSERT OR REPLACE INTO items (id, type, name, poster_url, category_id, updated_at) 
-         VALUES (?, ?, ?, ?, ?, ?)`
+        `INSERT OR REPLACE INTO items (id, stream_id, type, name, poster_url, category_id, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
       )
-      .run(item.id, item.type, item.name, item.poster_url || null, item.category_id || null, now);
+      .run(item.id, item.stream_id, item.type, item.name, item.poster_url || null, item.category_id || null, now);
   } catch (error) {
     console.error("Store item error:", error);
   }
@@ -276,13 +317,13 @@ export function storeItems(items: CachedItem[]): void {
     const database = getDatabase();
     const now = Date.now();
     const stmt = database.prepare(
-      `INSERT OR REPLACE INTO items (id, type, name, poster_url, category_id, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT OR REPLACE INTO items (id, stream_id, type, name, poster_url, category_id, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
 
     const transaction = database.transaction((items: CachedItem[]) => {
       for (const item of items) {
-        stmt.run(item.id, item.type, item.name, item.poster_url || null, item.category_id || null, now);
+        stmt.run(item.id, item.stream_id, item.type, item.name, item.poster_url || null, item.category_id || null, now);
       }
     });
 
@@ -310,10 +351,10 @@ export function getItems(
 
     if (categoryId) {
       query =
-        "SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? AND category_id = ? ORDER BY name";
+        "SELECT id, stream_id, type, name, poster_url, category_id FROM items WHERE type = ? AND category_id = ? ORDER BY name";
       params = [type, categoryId];
     } else {
-      query = "SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? ORDER BY name";
+      query = "SELECT id, stream_id, type, name, poster_url, category_id FROM items WHERE type = ? ORDER BY name";
       params = [type];
     }
 
@@ -329,6 +370,7 @@ export function getItems(
 
     const rows = database.prepare(query).all(...params) as Array<{
       id: string;
+      stream_id: string;
       type: string;
       name: string;
       poster_url: string | null;
@@ -337,6 +379,7 @@ export function getItems(
 
     return rows.map((row) => ({
       id: row.id,
+      stream_id: row.stream_id,
       type: row.type as "vod" | "series",
       name: row.name,
       poster_url: row.poster_url,
@@ -377,11 +420,11 @@ export function searchItems(
 
     if (type) {
       sqlQuery =
-        "SELECT id, type, name, poster_url, category_id FROM items WHERE type = ? AND name LIKE ? ORDER BY name";
+        "SELECT id, stream_id, type, name, poster_url, category_id FROM items WHERE type = ? AND name LIKE ? ORDER BY name";
       params = [type, searchTerm];
     } else {
       sqlQuery =
-        "SELECT id, type, name, poster_url, category_id FROM items WHERE name LIKE ? ORDER BY type, name";
+        "SELECT id, stream_id, type, name, poster_url, category_id FROM items WHERE name LIKE ? ORDER BY type, name";
       params = [searchTerm];
     }
 
@@ -397,6 +440,7 @@ export function searchItems(
 
     const rows = database.prepare(sqlQuery).all(...params) as Array<{
       id: string;
+      stream_id: string;
       type: string;
       name: string;
       poster_url: string | null;
@@ -405,6 +449,7 @@ export function searchItems(
 
     return rows.map((row) => ({
       id: row.id,
+      stream_id: row.stream_id,
       type: row.type as "vod" | "series",
       name: row.name,
       poster_url: row.poster_url,
@@ -459,10 +504,11 @@ export function getItem(id: string, type: "vod" | "series"): CachedItem | null {
     const database = getDatabase();
 
     const row = database
-      .prepare("SELECT id, type, name, poster_url, category_id FROM items WHERE id = ? AND type = ?")
+      .prepare("SELECT id, stream_id, type, name, poster_url, category_id FROM items WHERE id = ? AND type = ?")
       .get(id, type) as
       | {
           id: string;
+          stream_id: string;
           type: string;
           name: string;
           poster_url: string | null;
@@ -476,6 +522,7 @@ export function getItem(id: string, type: "vod" | "series"): CachedItem | null {
 
     return {
       id: row.id,
+      stream_id: row.stream_id,
       type: row.type as "vod" | "series",
       name: row.name,
       poster_url: row.poster_url,

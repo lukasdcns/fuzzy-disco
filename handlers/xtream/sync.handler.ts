@@ -41,6 +41,7 @@ export async function syncAllContentHandler(config: XtreamConfig): Promise<SyncR
         .filter((stream) => stream.stream_id && stream.name)
         .map((stream) => ({
           id: String(stream.stream_id),
+          stream_id: String(stream.stream_id),
           type: "vod" as const,
           name: stream.name,
           poster_url: stream.stream_icon || null,
@@ -70,6 +71,7 @@ export async function syncAllContentHandler(config: XtreamConfig): Promise<SyncR
         .filter((series) => series.series_id && series.name)
         .map((series) => ({
           id: String(series.series_id),
+          stream_id: String(series.series_id),
           type: "series" as const,
           name: series.name,
           poster_url: series.cover || null,

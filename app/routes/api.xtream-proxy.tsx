@@ -65,16 +65,18 @@ export async function loader({ request }: Route.LoaderArgs): Promise<Response> {
     }
 
     // Make the request server-side
+    console.log(`[Proxy] Fetching: ${decodedUrl}`);
     const response = await fetch(decodedUrl, {
       method: request.method,
       headers: {
-        // Forward relevant headers (excluding host, connection, etc.)
-        "User-Agent": request.headers.get("User-Agent") || "React-Router-Xtream-Proxy/1.0",
-        "Accept": request.headers.get("Accept") || "*/*",
+        // Use a browser-like User-Agent to avoid blocking
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "*/*",
       },
       // Forward the request signal for cancellation
       signal: request.signal,
     });
+    console.log(`[Proxy] Response status: ${response.status}`);
 
     // Get response data
     const contentType = response.headers.get("content-type") || "application/json";
@@ -111,12 +113,18 @@ export async function loader({ request }: Route.LoaderArgs): Promise<Response> {
     });
   } catch (error) {
     // Handle fetch errors (network issues, timeouts, etc.)
+    console.error("[Proxy] Error:", error);
     if (error instanceof Error) {
       if (error.name === "AbortError") {
         return data({ error: "Request was aborted" }, { status: 499 });
       }
+      console.error(`[Proxy] Fetch failed: ${error.message}`,error);
       return data(
-        { error: "Proxy request failed", message: error.message },
+        {
+          error: "Proxy request failed",
+          message: error.message,
+          details: "The Xtream server reset the connection. This could be due to invalid credentials, IP blocking, or server issues."
+        },
         { status: 502 }
       );
     }

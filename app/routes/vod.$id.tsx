@@ -4,8 +4,7 @@ import type { Route } from "./+types/vod.$id";
 import { VideoPlayer } from "../../views/VideoPlayer";
 import { buildVODStreamUrl } from "../../utils/stream-url";
 import { getConfig } from "../../utils/config";
-import type { XtreamVODStream } from "../../types/xtream.types";
-import { buildApiUrl } from "../../utils/api-url";
+import type { CachedItem } from "../../types/cache.types";
 
 /**
  * Meta function for the VOD detail page route
@@ -26,7 +25,7 @@ export function meta(_args: Route.MetaArgs) {
 export default function VODDetail(): JSX.Element {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [vodInfo, setVodInfo] = useState<XtreamVODStream | null>(null);
+  const [vodInfo, setVodInfo] = useState<CachedItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
@@ -48,25 +47,24 @@ export default function VODDetail(): JSX.Element {
           throw new Error("Please configure your Xtream API connection first.");
         }
 
-        // Fetch VOD streams and find the matching one
-        const url = buildApiUrl(config, "get_vod_streams");
-        const response = await fetch(url);
-        
+        // Fetch item from database
+        const response = await fetch(`/api/items?type=vod&id=${id}`);
+
         if (!response.ok) {
-          throw new Error(`Failed to fetch VOD streams: ${response.statusText}`);
+          throw new Error(`Failed to fetch VOD item: ${response.statusText}`);
         }
 
-        const streams: XtreamVODStream[] = await response.json();
-        const stream = streams.find((s) => String(s.stream_id) === id);
+        const data = await response.json();
+        const item = data.item as CachedItem | null;
 
-        if (!stream) {
-          throw new Error("VOD stream not found");
+        if (!item) {
+          throw new Error("VOD stream not found in database");
         }
 
-        setVodInfo(stream);
+        setVodInfo(item);
 
-        // Build streaming URL - Format: url/username/password/contentid
-        const streamUrlValue = buildVODStreamUrl(config, stream.stream_id);
+        // Build streaming URL using stream_id from database
+        const streamUrlValue = buildVODStreamUrl(config, parseInt(item.stream_id));
         setStreamUrl(streamUrlValue);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load VOD information");
@@ -128,16 +126,9 @@ export default function VODDetail(): JSX.Element {
             <VideoPlayer
               streamUrl={streamUrl}
               title={vodInfo.name}
-              poster={vodInfo.stream_icon || undefined}
+              poster={vodInfo.poster_url || undefined}
             />
           </div>
-
-          {vodInfo.rating && (
-            <div className="mt-4">
-              <span className="font-semibold text-gray-900 dark:text-white">Rating: </span>
-              <span className="text-gray-700 dark:text-gray-300">{vodInfo.rating}</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
